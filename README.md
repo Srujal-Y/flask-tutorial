@@ -1,6 +1,8 @@
-#Daily Updates
-#21st April 2026
-#Initialized The Project
+## Daily Updates
+
+##21st April 2026
+
+-Initialized The Project
 
 #22nd April 2026
 
