@@ -1,9 +1,10 @@
 ## Daily Updates
 
-21st April 2026
-Initialized The Project
+## 21st April 2026
 
-#22nd April 2026
+- Initialized The Project
+
+## 22nd April 2026
 
 ## Implemented Chapter 1-5
 - Flask application factory
