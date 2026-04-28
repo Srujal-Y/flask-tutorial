@@ -1,7 +1,8 @@
 import sqlalchemy as sa
+from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, PasswordField, StringField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
+from wtforms import BooleanField, PasswordField, StringField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 
 from app import db
 from app.models import User
@@ -34,3 +35,48 @@ class RegistrationForm(FlaskForm):
         user = db.session.scalar(sa.select(User).where(User.email == email.data))
         if user is not None:
             raise ValidationError("Please use a different email address.")
+
+
+class EditProfileForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    about_me = TextAreaField("About me", validators=[Length(min=0, max=140)])
+    submit = SubmitField("Submit")
+
+    def __init__(self, original_username=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.original_username = original_username or current_user.username
+
+    def validate_username(self, username):
+        if username.data != self.original_username:
+            user = db.session.scalar(
+                sa.select(User).where(User.username == username.data)
+            )
+            if user is not None:
+                raise ValidationError("Please use a different username.")
+
+
+class ForgotPasswordForm(FlaskForm):
+    username = StringField(
+        "Username",
+        validators=[DataRequired(), Length(min=1, max=20)],
+    )
+    submit = SubmitField("Submit")
+
+    def validate_username(self, username):
+        user = db.session.scalar(
+            sa.select(User).where(User.username == username.data)
+        )
+        if user is None:
+            raise ValidationError("Username not found.")
+
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField(
+        "New Password",
+        validators=[DataRequired(), Length(min=1, max=20)],
+    )
+    password2 = PasswordField(
+        "Repeat Password",
+        validators=[DataRequired(), EqualTo("password")],
+    )
+    submit = SubmitField("Reset Password")

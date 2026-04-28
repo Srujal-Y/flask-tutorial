@@ -1,7 +1,7 @@
 [project]
 name = "microblog"
-version = "0.5.0"
-description = "A Flask microblog app built through Chapter 5 of Miguel Grinberg's Flask Mega-Tutorial."
+version = "0.7.0"
+description = "A Flask microblog app built through Chapter 7 of Miguel Grinberg's Flask Mega-Tutorial."
 readme = "README.rst"
 license = "BSD-3-Clause"
 classifiers = ["Private :: Do Not Upload"]

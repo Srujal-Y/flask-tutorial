@@ -9,6 +9,7 @@ app.db
 .pytest_cache/
 .coverage
 htmlcov/
+logs/
 migrations/__pycache__/
 
 dist/
