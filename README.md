@@ -92,3 +92,7 @@
 - `tests/test_routes.py`
 - `tests/test_auth.py`
 - `tests/conftest.py`
+
+## 28th April 2026
+
+## Implemented CHapter 6 & 7
