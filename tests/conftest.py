@@ -4,7 +4,7 @@ import tempfile
 import pytest
 
 from app import create_app, db
-from app.models import User
+from app.models import Post, User
 
 
 @pytest.fixture
@@ -17,6 +17,8 @@ def app():
             "TESTING": True,
             "WTF_CSRF_ENABLED": False,
             "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
+            "ELASTICSEARCH_URL": None,
+            "POSTS_PER_PAGE": 25,
         }
     )
 
@@ -25,6 +27,8 @@ def app():
         user = User(username="test", email="test@example.com")
         user.set_password("test")
         db.session.add(user)
+        db.session.flush()
+        db.session.add(Post(body="A database-backed test post", author=user))
         db.session.commit()
 
     yield app
@@ -53,13 +57,13 @@ class AuthActions:
 
     def login(self, username="test", password="test", follow_redirects=False):
         return self._client.post(
-            "/login",
+            "/auth/login",
             data={"username": username, "password": password},
             follow_redirects=follow_redirects,
         )
 
     def logout(self, follow_redirects=False):
-        return self._client.get("/logout", follow_redirects=follow_redirects)
+        return self._client.get("/auth/logout", follow_redirects=follow_redirects)
 
 
 @pytest.fixture

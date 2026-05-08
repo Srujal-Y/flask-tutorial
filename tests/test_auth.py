@@ -6,7 +6,7 @@ from app.models import User
 
 def test_register_creates_user(client, app):
     response = client.post(
-        "/register",
+        "/auth/register",
         data={
             "username": "susan",
             "email": "susan@example.com",
@@ -27,7 +27,7 @@ def test_register_creates_user(client, app):
 
 def test_register_rejects_duplicate_username(client):
     response = client.post(
-        "/register",
+        "/auth/register",
         data={
             "username": "test",
             "email": "new@example.com",
@@ -41,7 +41,7 @@ def test_register_rejects_duplicate_username(client):
 
 def test_register_rejects_duplicate_email(client):
     response = client.post(
-        "/register",
+        "/auth/register",
         data={
             "username": "new-user",
             "email": "test@example.com",
@@ -65,7 +65,7 @@ def test_login_logout_flow(client, auth):
 
 def test_invalid_login_shows_error(client):
     response = client.post(
-        "/login",
+        "/auth/login",
         data={"username": "test", "password": "wrong"},
         follow_redirects=True,
     )
@@ -73,11 +73,22 @@ def test_invalid_login_shows_error(client):
     assert b"Invalid username or password" in response.data
 
 
+def test_password_reset_request_without_mail_server_is_graceful(client):
+    response = client.post(
+        "/auth/reset_password_request",
+        data={"email": "test@example.com"},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Check your email for the instructions to reset your password" in response.data
+
+
 def test_authenticated_user_cannot_open_auth_pages(client, auth):
     auth.login()
 
-    login_response = client.get("/login")
-    register_response = client.get("/register")
+    login_response = client.get("/auth/login")
+    register_response = client.get("/auth/register")
 
     assert login_response.status_code == 302
     assert login_response.headers["Location"].endswith("/index")

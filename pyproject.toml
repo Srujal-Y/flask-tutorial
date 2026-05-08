@@ -1,22 +1,33 @@
 [project]
 name = "microblog"
-version = "0.7.0"
-description = "A Flask microblog app built through Chapter 7 of Miguel Grinberg's Flask Mega-Tutorial."
-readme = "README.rst"
-license = "BSD-3-Clause"
+version = "1.0.0"
+description = "A Flask microblog app built through Chapter 23 of Miguel Grinberg's Flask Mega-Tutorial."
+readme = "README.md"
+license = "MIT"
 classifiers = ["Private :: Do Not Upload"]
 dependencies = [
+    "babel",
     "email-validator",
+    "elasticsearch",
     "flask",
+    "flask-babel",
+    "flask-httpauth",
     "flask-login",
+    "flask-mail",
     "flask-migrate",
+    "flask-moment",
     "flask-sqlalchemy",
     "flask-wtf",
+    "langdetect",
+    "pyjwt",
     "python-dotenv",
+    "redis",
+    "requests",
+    "rq",
 ]
 
 [project.optional-dependencies]
-test = ["pytest"]
+test = ["pytest", "httpie"]
 
 [project.urls]
 Documentation = "https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world"
@@ -34,6 +45,11 @@ include = ["app*"]
 [tool.setuptools.package-data]
 app = [
     "templates/*.html",
+    "templates/*/*.html",
+    "templates/email/*.txt",
+    "static/*",
+    "translations/*/LC_MESSAGES/*.po",
+    "translations/*/LC_MESSAGES/*.mo",
 ]
 
 [tool.pytest.ini_options]

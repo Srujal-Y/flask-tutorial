@@ -10,21 +10,21 @@ def test_index_requires_login(client):
     response = client.get("/", follow_redirects=False)
 
     assert response.status_code == 302
-    assert "/login?next=%2F" in response.headers["Location"]
+    assert "/auth/login?next=%2F" in response.headers["Location"]
 
 
 def test_index_renders_for_logged_in_user(client, auth):
     response = auth.login(follow_redirects=True)
 
-    assert b"Beautiful day in Portland!" in response.data
-    assert b"The Avengers movie was so cool!" in response.data
+    assert b"Hi, test!" in response.data
+    assert b"A database-backed test post" in response.data
 
 
 def test_user_profile_requires_login(client):
     response = client.get("/user/test", follow_redirects=False)
 
     assert response.status_code == 302
-    assert "/login?next=%2Fuser%2Ftest" in response.headers["Location"]
+    assert "/auth/login?next=%2Fuser%2Ftest" in response.headers["Location"]
 
 
 def test_user_profile_renders_for_logged_in_user(client, auth):
@@ -33,7 +33,7 @@ def test_user_profile_renders_for_logged_in_user(client, auth):
 
     assert b"User: test" in response.data
     assert b"gravatar.com/avatar" in response.data
-    assert b"Test post #1" in response.data
+    assert b"A database-backed test post" in response.data
     assert b"Edit your profile" in response.data
 
 
@@ -69,6 +69,14 @@ def test_edit_profile_rejects_duplicate_username(client, auth, app):
     assert b"Please use a different username." in response.data
 
 
+def test_export_posts_without_redis_is_graceful(client, auth):
+    auth.login()
+    response = client.get("/export_posts", follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"The task queue is unavailable" in response.data
+
+
 def test_last_seen_is_recorded_before_requests(client, auth, app):
     old_time = datetime(2000, 1, 1)
     with app.app_context():
@@ -88,4 +96,4 @@ def test_404_error_page(client):
     response = client.get("/does-not-exist")
 
     assert response.status_code == 404
-    assert b"File Not Found" in response.data
+    assert b"Not Found" in response.data
