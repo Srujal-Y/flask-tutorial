@@ -8,7 +8,6 @@ from app.auth import bp
 from app.auth.forms import LoginForm, RegistrationForm, \
     ResetPasswordRequestForm, ResetPasswordForm
 from app.models import User
-from app.auth.email import send_password_reset_email
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -42,7 +41,7 @@ def register():
         return redirect(url_for('main.index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
+        user = User(username=form.username.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -59,12 +58,12 @@ def reset_password_request():
     form = ResetPasswordRequestForm()
     if form.validate_on_submit():
         user = db.session.scalar(
-            sa.select(User).where(User.email == form.email.data))
-        if user:
-            send_password_reset_email(user)
-        flash(
-            _('Check your email for the instructions to reset your password'))
-        return redirect(url_for('auth.login'))
+            sa.select(User).where(User.username == form.username.data))
+        if user is None:
+            flash(_('No account with that username.'))
+            return redirect(url_for('auth.reset_password_request'))
+        token = user.get_reset_password_token()
+        return redirect(url_for('auth.reset_password', token=token))
     return render_template('auth/reset_password_request.html',
                            title=_('Reset Password'), form=form)
 

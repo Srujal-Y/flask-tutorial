@@ -20,7 +20,6 @@ def test_api_create_token_get_and_update_user(client, app):
         "/api/users",
         json={
             "username": "api-user",
-            "email": "api-user@example.com",
             "password": "cat",
         },
     )

@@ -9,7 +9,6 @@ def test_register_creates_user(client, app):
         "/auth/register",
         data={
             "username": "susan",
-            "email": "susan@example.com",
             "password": "cat",
             "password2": "cat",
         },
@@ -21,7 +20,6 @@ def test_register_creates_user(client, app):
     with app.app_context():
         user = db.session.scalar(sa.select(User).where(User.username == "susan"))
         assert user is not None
-        assert user.email == "susan@example.com"
         assert user.check_password("cat")
 
 
@@ -30,27 +28,12 @@ def test_register_rejects_duplicate_username(client):
         "/auth/register",
         data={
             "username": "test",
-            "email": "new@example.com",
             "password": "cat",
             "password2": "cat",
         },
     )
 
     assert b"Please use a different username." in response.data
-
-
-def test_register_rejects_duplicate_email(client):
-    response = client.post(
-        "/auth/register",
-        data={
-            "username": "new-user",
-            "email": "test@example.com",
-            "password": "cat",
-            "password2": "cat",
-        },
-    )
-
-    assert b"Please use a different email address." in response.data
 
 
 def test_login_logout_flow(client, auth):
@@ -73,15 +56,44 @@ def test_invalid_login_shows_error(client):
     assert b"Invalid username or password" in response.data
 
 
-def test_password_reset_request_without_mail_server_is_graceful(client):
+def test_password_reset_request_redirects_to_reset_page(client):
     response = client.post(
         "/auth/reset_password_request",
-        data={"email": "test@example.com"},
+        data={"username": "test"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert "/auth/reset_password/" in response.headers["Location"]
+
+
+def test_password_reset_request_unknown_user_flashes(client):
+    response = client.post(
+        "/auth/reset_password_request",
+        data={"username": "nobody"},
         follow_redirects=True,
     )
 
     assert response.status_code == 200
-    assert b"Check your email for the instructions to reset your password" in response.data
+    assert b"No account with that username." in response.data
+
+
+def test_password_reset_flow_updates_password(client, app):
+    with app.app_context():
+        user = db.session.scalar(sa.select(User).where(User.username == "test"))
+        token = user.get_reset_password_token()
+
+    response = client.post(
+        f"/auth/reset_password/{token}",
+        data={"password": "newpw", "password2": "newpw"},
+        follow_redirects=True,
+    )
+
+    assert b"Your password has been reset." in response.data
+
+    with app.app_context():
+        user = db.session.scalar(sa.select(User).where(User.username == "test"))
+        assert user.check_password("newpw")
 
 
 def test_authenticated_user_cannot_open_auth_pages(client, auth):
